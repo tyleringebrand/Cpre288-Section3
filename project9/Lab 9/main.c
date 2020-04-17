@@ -64,8 +64,8 @@ int main(void)
 	int startingIndex = index;
 	while (sensorAgreement[index] == 1)
 		index++;
-	//index now points to last occurence of confirmed point
-	int endingIndex = index;
+	//index now points to first  occurence of an unconfirmed point after the object
+	int endingIndex = index-1;
 	//middle index of object, used for radius
 	int middleIndex = ( endingIndex + startingIndex) / 2;
 
