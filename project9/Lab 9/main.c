@@ -21,11 +21,11 @@ int main(void)
     servo_move(0);//makes sure the servo is in the correct position before starting
     timer_waitMillis(50);//give the servo a little extra time to move since it could be moving from 180
 
-	int IR[91];
-	float ping[91];
-	int sensorAgreement[91];
+	int IR[181];
+	float ping[181];
+	int sensorAgreement[181];
 	float ErrorTolerance = .1;  //percent
-	int degreesPerMeasurement = 2;
+	int degreesPerMeasurement = 2; // minimum 1
 
     char msg[40];
     sprintf(msg, "Degrees\tIR Distance (cm)\tSonar Distance (cm)");
@@ -43,7 +43,7 @@ int main(void)
 
 		IR[index] = adcDist;
 		ping[index] = pingData;
-		if((IR[index] >= ping[d/2] * (1.0- ErrorTolerance)) && (IR[index] <= ping[index] * (1.0 + ErrorTolerance)))
+		if((IR[index] >= ping[index] * (1.0- ErrorTolerance)) && (IR[index] <= ping[index] * (1.0 + ErrorTolerance)))
 			sensorAgreement[index] = 1; // within tolerance
 		else
 			sensorAgreement[index] = 0; //out of tolerance
