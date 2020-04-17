@@ -21,16 +21,32 @@ int main(void)
     servo_move(0);//makes sure the servo is in the correct position before starting
     timer_waitMillis(50);//give the servo a little extra time to move since it could be moving from 180
 
+	int IR[91];
+	float ping[91];
+	int sensorAgreement[91];
+	float ErrorTolerance = .1;  //percent
+	int degreesPerMeasurement = 2;
+
     char msg[40];
     sprintf(msg, "Degrees\tIR Distance (cm)\tSonar Distance (cm)");
     uart_sendStr(msg);//displays msg onto putty
-    for( d = 0; d < 180; d +=2) {//takes measurements from 0degrees to 180
-        int adcData = adc_read();//IR sensor reads data
+    for( d = 0; d <= 180; d += degreesPerMeasurement) {//takes measurements from 0degrees to 180
+		int index = d / degreesPerMeasurement;
+
+		int adcData = adc_read();//IR sensor reads data
         int adcDist = adc_read_convert(ltadc, adcData);//raw data is converted into centimeters
         float pingData = ping_getData();//gets the distance calculated from the ping sensor
 
         sprintf(msg, "%d, %d, %f", d, adcDist, pingData);
         uart_sendStr(msg);
+
+
+		IR[index] = adcDist;
+		ping[index] = pingData;
+		if((IR[index] >= ping[d/2] * (1.0- ErrorTolerance)) && (IR[index] <= ping[index] * (1.0 + ErrorTolerance)))
+			sensorAgreement[index] = 1; // within tolerance
+		else
+			sensorAgreement[index] = 0; //out of tolerance
 
         //compare data to notice object
 
@@ -38,6 +54,26 @@ int main(void)
     }
 
     //move servo to point in the middle of object
+	
+
+	////find object based on true readings
+	int index = 0;
+	while (sensorAgreement[index] == 0)
+		index++;
+	//index now points to first occurance of a confirmed data point
+	int startingIndex = index;
+	while (sensorAgreement[index] == 1)
+		index++;
+	//index now points to last occurence of confirmed point
+	int endingIndex = index;
+	//middle index of object, used for radius
+	int middleIndex = ( endingIndex + startingIndex) / 2;
+
+	//width in degrees equals degrees per scan * number of confirmed scans
+	int widthDegrees = (endingIndex - startingIndex)*degreesPerMeasurement;
+	//True width result = (2Pi * distanceAway) * (arcWidth/360)
+	double differenceCM = (2 * 3.14159 * IR[middleIndex])*((double)widthDegrees / 360.0);
+
 
 
     oi_free(sensor_data);
