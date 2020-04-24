@@ -43,11 +43,11 @@ int main(void)
 
         IR[index] = adcDist;
         ping[index] = pingData;
-        if((IR[index] >= ping[index] * (1.0- ErrorTolerance)) && (IR[index] <= ping[index] * (1.0 + ErrorTolerance)))
+        if((IR[index] >= ping[index] * (1.0- ErrorTolerance)) && (IR[index] <= ping[index] * (1.0 + ErrorTolerance))) {
             sensorAgreement[index] = 1; // within tolerance
-        else
+        }else{
             sensorAgreement[index] = 0; //out of tolerance
-
+        }
         //compare data to notice object
 
         servo_move((float)d);//moves to d degrees

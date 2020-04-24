@@ -28,12 +28,12 @@ void servo_init(void) {
     TIMER1_CTL_R &= ~0x100;//disable timer1b
     TIMER1_CFG_R |= 0x4;//selects 16bit timer mode
     TIMER1_TBMR_R |= 0xA;//enables pwm mode and periodic timer mode
-    TIMER1_TBMR_R &= ~0x4;//turns on edge-count mode
-    TIMER1_TBILR_R = 0xBB80;//gives us a 24bit timer
-    TIMER1_TBPR_R = 0x00;//gives us a 24bit timer
-    TIMER1_TBMATCHR_R = 0x5DC0; //should be set to 90 degrees
+    //TIMER1_TBMR_R &= ~0x4;//turns on edge-count mode
+    TIMER1_TBILR_R = (TIMER1_TBILR_R &0xFF0000) | 0xE200;//gives us a 24bit timer
+    TIMER1_TBPR_R = (TIMER1_TBPR_R & 0x00FFFF) | 0x4;//gives us a 24bit timer
+    TIMER1_TBMATCHR_R = 0x8440; //should be set to 90 degrees
     //0x5DC0 is 24,000 in integer
-    TIMER1_TBPMR_R |= 0x0000;//shouldnt be needed
+    //TIMER1_TBPMR_R |= 0x0000;//shouldnt be needed
     TIMER1_CTL_R |= 0x100;//enable timer1b
 
 
@@ -45,11 +45,11 @@ int servo_move(float degrees) {
 
    float timeMicros = 1000.0 + (degrees/180.0)*(1000.0);  //must be at least 1000, linearly proportional to percent of 180 degrees we want to move
    int clockCycles = (int)(16 * timeMicros); //16 million cycles per second, thats 16 cycles per microsecond, multiply microseconds by 16
-
+   clockCycles = 320000 - clockCycles;
    TIMER1_CTL_R &= 0xFFFFFEFF;//timer off so we can change things,  change bit 8 to 0
 
-   TIMER1_TBMATCHR_R = clockCycles; //converts to hexadecimal probably?
-   //TIMER1_TBPMR_R = 0x0000; // we will never need prescale since max width is 2 ms, which is 4 hexadecimal values
+   TIMER1_TBMATCHR_R = (clockCycles & 0x00FFFF); //converts to hexadecimal probably?
+   TIMER1_TBPMR_R = (clockCycles & 0xFF0000); // we will never need prescale since max width is 2 ms, which is 4 hexadecimal values
 
    TIMER1_CTL_R |= 0x00000100;//timer on again, change bit 8 to 1
 
